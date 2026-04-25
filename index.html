@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Tweet AI — Toluspace</title>
+<link href="https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:#04070f; --card:#090f1e; --s1:#080e1c; --border:#162035; --border2:#1f2f4a;
+  --x:#1d9bf0; --purple:#8b5cf6; --green:#22d3a5; --text:#dbeafe; --muted:#5a7a9a;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'Cabinet Grotesk', sans-serif; background:var(--bg); color:var(--text); padding:20px; line-height:1.5; }
+.container { max-width:800px; margin:0 auto; }
+.card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,0.5); margin-bottom:20px; }
+h1 { font-size:2.5rem; font-weight:900; margin-bottom:10px; text-align:center; }
+h1 span { background:linear-gradient(90deg, var(--x), var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+input, select, textarea { width:100%; background:var(--s1); border:1px solid var(--border2); color:white; padding:12px; border-radius:10px; margin-top:10px; font-family:inherit; }
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; }
+.btn-main { width:100%; padding:18px; margin-top:15px; border:none; border-radius:12px; background:linear-gradient(135deg, var(--x), var(--purple)); color:white; font-weight:800; cursor:pointer; font-size:16px; transition:0.2s; }
+.btn-main:disabled { opacity:0.5; }
+.tc { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:20px; margin-top:15px; }
+.badge { font-size:9px; font-weight:800; padding:3px 8px; border-radius:4px; border:1px solid var(--x); color:var(--x); text-transform:uppercase; display:inline-block; margin-bottom:10px; }
+.algo-container { margin-bottom:15px; }
+.algo-header { display:flex; justify-content:space-between; font-size:10px; color:var(--muted); font-family:'JetBrains Mono'; margin-bottom:6px; }
+.algo-bar { height:4px; background:rgba(255,255,255,0.05); border-radius:10px; overflow:hidden; }
+.algo-fill { height:100%; background:linear-gradient(90deg, var(--x), var(--purple)); transition:1.5s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
+.logic { font-size:12px; color:var(--muted); border-top:1px solid var(--border2); padding-top:12px; margin-top:15px; line-height:1.4; }
+#status { text-align:center; margin-top:10px; font-size:12px; color:var(--x); font-weight:bold; }
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <h1>TweetAI -<span>Toluspace</span></h1>
+        <input type="password" id="apiKey" placeholder="Enter Gemini API Key">
+        
+        <div class="grid">
+            <select id="niche">
+                <option value="eFootball & Gaming">🎮 eFootball & Gaming</option>
+                <option value="Tech & AI">⚡ Tech & AI</option>
+                <option value="Graphics Design">🎨 Graphics Design</option>
+                <option value="Football/Sports">⚽ Football/Sports</option>
+            </select>
+            <select id="strategy">
+                <option value="Hot Take/Contrarian">🌶️ Hot Take</option>
+                <option value="Storytelling">📖 Storytelling</option>
+                <option value="Educational">📚 Educational</option>
+                <option value="Viral Growth">🔥 Viral Growth</option>
+            </select>
+        </div>
+
+        <textarea id="topic" rows="3" placeholder="Context (e.g. New Big Time Messi, AI Tools, Branding tips)"></textarea>
+        <button class="btn-main" id="btn" onclick="generate()">⚡ ACTIVATE VIRAL ENGINE</button>
+        <div id="status"></div>
+    </div>
+    <div id="results"></div>
+    <h6 style="text-align: center; color:#8b5cf6 "><span><i>Wavyspace Technology</i></span></h6>
+</div>
+
+<script>
+document.getElementById('apiKey').value = localStorage.getItem('v12_key') || '';
+
+async function generate() {
+    const key = document.getElementById('apiKey').value.trim();
+    const niche = document.getElementById('niche').value;
+    const strategy = document.getElementById('strategy').value;
+    const topic = document.getElementById('topic').value || "current 2026 trends";
+    const status = document.getElementById('status');
+    const results = document.getElementById('results');
+    const btn = document.getElementById('btn');
+
+    if(!key) return alert("API Key Needed");
+    localStorage.setItem('v12_key', key);
+    
+    btn.disabled = true;
+    status.innerText = "Applying 15 Copywriting Skills...";
+    results.innerHTML = "";
+
+    // April 2026 Stable Models
+    const models = ["gemini-3.1-flash-lite-preview", "gemini-2.5-flash"];
+    
+    const copywritingRules = `
+    Apply these 15 skills: 
+    1. Hook Writing (Stop the scroll) 2. Copywriting (Persuade) 3. Engagement Baiting (Ask opinions) 
+    4. Storytelling (Problem->Lesson) 5. Curiosity Gaps 6. Emotional Triggers 
+    7. Audience Lingo (e.g. 'meta' for gamers, 'UI/UX' for design) 8. Controversy Framing 
+    9. Readability (Short lines) 10. Authority Positioning 11. Value Packing 12. CTA 
+    13. Punch-up Editing 14. Virality Engineering 15. Dwell Time Optimization.`;
+
+    for (let model of models) {
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    contents: [{parts: [{text: `Niche: ${niche}. Strategy: ${strategy}. Topic: ${topic}. 
+                    ${copywritingRules} 
+                    Generate 2 viral tweets and 2 replies. 
+                    Return ONLY JSON array: [{"type":"tweet","content":"...","score":98,"logic":"..."}]`}]}],
+                    generationConfig: { responseMimeType: "application/json", temperature: 0.85 }
+                })
+            });
+
+            if (!response.ok) continue;
+
+            const data = await response.json();
+            const items = JSON.parse(data.candidates[0].content.parts[0].text);
+            
+            items.forEach(item => {
+                const score = item.score || 85;
+                results.innerHTML += `
+                    <div class="tc">
+                        <div class="algo-container">
+                            <div class="algo-header">
+                                <span>ALGORITHM SCORE</span>
+                                <span style="color:var(--green)">${score}/100</span>
+                            </div>
+                            <div class="algo-bar"><div class="algo-fill" style="width:${score}%"></div></div>
+                        </div>
+                        <span class="badge">${item.type}</span>
+                        <div style="font-size:16px; line-height:1.6; white-space: pre-line;">${item.content}</div>
+                        <div class="logic"><strong>Strategy:</strong> ${item.logic}</div>
+                        <button onclick="navigator.clipboard.writeText(\`${item.content}\`)" style="background:none; border:none; color:var(--x); cursor:pointer; font-size:11px; font-weight:800; margin-top:12px;">📋 COPY CONTENT</button>
+                    </div>`;
+            });
+
+            status.innerText = "✅ Algorithm Successfully Penetrated";
+            btn.disabled = false; return;
+        } catch (e) { console.log(model + " failed"); }
+    }
+    status.innerText = "❌ BLOCK DETECTED. Check Key or VPN.";
+    btn.disabled = false;
+}
+</script>
+</body>
+</html>

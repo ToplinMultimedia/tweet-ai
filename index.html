@@ -1,246 +1,230 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
+<meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Tweet-AI — By Toluspace</title>
-<link href="https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<title>Tweet Scorer AI TrendX - Beast Mode</title>
+<script src="https://cdn.tailwindcss.com"></script>
 <style>
-:root {
-  --bg:#020612; --card:#0a0f1d; --s1:#080e1c; --border:#1a2333; --border2:#2a3a5a;
-  --x:#1d9bf0; --purple:#a855f7; --green:#10b981; --gold:#fbbf24; --text:#f1f5f9; --muted:#64748b;
-}
-* { box-sizing:border-box; margin:0; padding:0; }
-body { font-family:'Cabinet Grotesk', sans-serif; background:var(--bg); color:var(--text); padding:20px; line-height:1.5; }
-.container { max-width:850px; margin:0 auto; }
-
-/* BRANDING & LOGO */
-.logo-area { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:30px; }
-.logo-icon { width:50px; height:50px; background:linear-gradient(135deg, var(--x), var(--purple)); border-radius:12px; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:24px; color:white; box-shadow:0 0 20px rgba(29, 155, 240, 0.4); }
-.logo-text { font-size:28px; font-weight:900; letter-spacing:-1px; }
-.logo-text span { background:linear-gradient(90deg, var(--x), var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-
-/* TREND DISCOVERY BOX */
-.trend-discovery { background:rgba(29, 155, 240, 0.05); border:1px dashed var(--x); border-radius:15px; padding:18px; margin-bottom:20px; display:none; animation: fadeIn 0.5s ease-in-out; }
-.trend-tag { display:inline-block; background:var(--s1); border:1px solid var(--border); padding:6px 14px; border-radius:25px; font-size:12px; margin:5px; color:var(--x); cursor:pointer; font-weight:700; transition:0.2s; }
-.trend-tag:hover { border-color:var(--purple); color:var(--purple); transform: translateY(-1px); }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-
-.card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:28px; box-shadow:0 20px 50px rgba(0,0,0,0.6); margin-bottom:20px; position:relative; overflow:hidden; }
-.card::before { content:''; position:absolute; top:0; left:0; width:100%; height:2px; background:linear-gradient(90deg, transparent, var(--x), var(--purple), transparent); }
-
-input, select, textarea { width:100%; background:var(--s1); border:1px solid var(--border); color:white; padding:14px; border-radius:12px; margin-top:10px; font-family:inherit; transition:0.3s; }
-input:focus, select:focus, textarea:focus { border-color:var(--x); outline:none; box-shadow:0 0 10px rgba(29,155,240,0.2); }
-
-.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:12px; }
-.btn-main { width:100%; padding:20px; margin-top:20px; border:none; border-radius:14px; background:linear-gradient(135deg, var(--x), var(--purple)); color:white; font-weight:900; cursor:pointer; font-size:16px; text-transform:uppercase; letter-spacing:1px; }
-.btn-main:hover { filter:brightness(1.1); transform:translateY(-2px); }
-.btn-main:disabled { opacity:0.5; cursor:not-allowed; }
-
-.tc { background:var(--card); border:1px solid var(--border); border-radius:18px; padding:24px; margin-top:20px; transition:0.3s; }
-.tc:hover { border-color:var(--border2); transform:scale(1.01); }
-.badge { font-size:10px; font-weight:900; padding:4px 10px; border-radius:6px; border:1px solid var(--x); color:var(--x); text-transform:uppercase; display:inline-block; margin-bottom:12px; }
-.badge-banter { border-color:var(--gold); color:var(--gold); }
-
-.algo-header { display:flex; justify-content:space-between; font-size:11px; color:var(--muted); font-family:'JetBrains Mono'; margin-bottom:8px; }
-.algo-bar { height:5px; background:rgba(255,255,255,0.05); border-radius:10px; overflow:hidden; margin-bottom:20px; }
-.algo-fill { height:100%; background:linear-gradient(90deg, var(--x), var(--purple)); border-radius:10px; transition:2s cubic-bezier(0.1, 1, 0.1, 1); }
-
-.content { font-size:17px; line-height:1.7; white-space:pre-line; color:#fff; }
-.meta-info { display:flex; gap:15px; margin-top:20px; padding-top:15px; border-top:1px solid var(--border); font-size:12px; color:var(--muted); }
-.copy-btn { background:none; border:none; color:var(--x); cursor:pointer; font-weight:900; font-size:12px; margin-top:15px; display:flex; align-items:center; gap:5px; }
-
-#status { text-align:center; margin-top:15px; font-size:13px; font-weight:700; color:var(--purple); min-height:20px; }
-/* MOBILE RESPONSIVE FIX */
-@media (max-width: 600px) {
-  .grid-3 {
-    grid-template-columns: 1fr; /* Stacks the 3 boxes vertically */
-    gap: 15px;
-  }
-  
-  .logo-text {
-    font-size: 22px; /* Slightly smaller text for small screens */
-  }
-
-  input, select, textarea {
-    font-size: 16px; /* Prevents iOS from auto-zooming on inputs */
-  }
-
-  .card {
-    padding: 18px; /* Slightly less padding to save space */
-  }
-
-  .copy-btn {
-    width: 100%; /* Makes the copy button easier to hit with a thumb */
-    justify-content: center;
-    border: 1px solid var(--border);
-    padding: 12px;
-    border-radius: 8px;
-    background: rgba(29, 155, 240, 0.05);
-  }
-}
+body{background:linear-gradient(135deg,#0f172a,#1e293b);}
+.glow{box-shadow:0 0 18px rgba(59,130,246,.35);}
 </style>
 </head>
-<body>
-<div class="container">
-    <div class="logo-area">
-        <div class="logo-icon">T</div>
-        <div class="logo-text">Tweet AI - <span>Toluspace</span></div>
-    </div>
+<body class="text-white min-h-screen p-3 md:p-6">
 
-    <div id="trendArea" class="trend-discovery">
-        <div style="font-size:11px; font-weight:900; color:var(--x); margin-bottom:8px; letter-spacing:1px;">🔥 LIVE 2026 TREND VECTORS:</div>
-        <div id="trendList"></div>
-    </div>
+<div class="max-w-6xl mx-auto">
 
-    <div class="card">
-        <input type="password" id="apiKey" placeholder="Paste Gemini API Key (v1beta Stable)">
-        
-        <div class="grid-3">
-            <div>
-                <label style="font-size:11px; color:var(--muted)">NICHE SECTOR</label>
-                <select id="niche" onchange="fetchTrends()">
-                    <option value="eFootball & Gaming">🎮 eFootball / Gaming</option>
-                    <option value="Christianity & Faith">🙏 Christianity & Faith</option>
-                    <option value="Tech & AI">⚡ Tech & AI</option>
-                    <option value="Nigerian Culture/Cruise">🇳🇬 Cruise & Banter</option>
-                    <option value="Finance & Crypto">💰 Finance / Web3</option>
-                    <option value="Graphics & Design">🎨 Creative Design</option>
-                    <option value="Football/Sports">⚽ Global Sports</option>
-                    <option value="Relationships">❤️ Relationships</option>
-                </select>
-            </div>
-            <div>
-                <label style="font-size:11px; color:var(--muted)">CONTENT VIBE</label>
-                <select id="vibe">
-                    <option value="Savage Banter">🌶️ Savage Banter</option>
-                    <option value="Inspirational">✨ Inspirational</option>
-                    <option value="Cruise/Humor">😂 Pure Cruise</option>
-                    <option value="Intellectual/Expert">🎯 Expert Authority</option>
-                    <option value="Emotional/Story">📖 Storytelling</option>
-                </select>
-            </div>
-            <div>
-                <label style="font-size:11px; color:var(--muted)">ALGO GOAL</label>
-                <select id="goal">
-                    <option value="Maximum Replies">💬 Reply Bait</option>
-                    <option value="High Retweets">🚀 Shareability</option>
-                    <option value="Bookmarks/Value">🔖 Saveable Info</option>
-                </select>
-            </div>
-        </div>
+<h1 class="text-2xl md:text-4xl font-bold text-center mb-2">Tweet Scorer AI TrendX 🚀</h1>
+<p class="text-center text-gray-300 mb-5 text-sm md:text-base">⚡ Modular Viral Intelligence Engine</p>
 
-        <textarea id="topic" rows="3" placeholder="Context (e.g. New Messi card, Elon's tweet, Nigerian wedding, AI update...)"></textarea>
-        <button class="btn-main" id="btn" onclick="generate()">DEPLOY ALGORITHM BYPASS</button>
-        <div id="status"></div>
-    </div>
-    <div id="results"></div>
-    <h6 style="text-align: center; color:#8b5cf6; margin-top:20px;"><span><i>Wavyspace Technology</i></span></h6>
+<div class="grid md:grid-cols-2 gap-4">
+
+<!-- LEFT PANEL -->
+<div class="bg-gray-800 p-4 md:p-5 rounded-xl glow">
+
+<select id="mode" class="w-full p-3 bg-gray-700 rounded mb-3">
+<option value="analyze">Analyze Tweet</option>
+<option value="generate">Generate Tweets</option>
+<option value="comment">Comment Scorer</option>
+<option value="detect">Human vs AI</option>
+<option value="hunter">Comment Hunter</option>
+<option value="thread">Thread Generator</option>
+</select>
+
+<input id="apiKey" type="password" placeholder="Groq API Key"
+class="w-full p-3 bg-gray-700 rounded mb-3">
+
+<select id="niche" onchange="toggleCustom()" class="w-full p-3 bg-gray-700 rounded mb-3">
+<option>Tech</option><option>Gaming</option><option>Sports</option><option>Business</option><option>Crypto</option><option>Motivation</option><option>AI</option><option>Graphics Design</option><option>Efootball</option><option>Christianity and Faith</option><option>Nigeria Lifestyle</option><option>Advice and Counselling</option><option>Web Development</option><option>Relationship</option><option>Custom</option>
+</select>
+
+<input id="customNiche" class="hidden w-full p-3 bg-gray-700 rounded mb-3" placeholder="Custom niche">
+
+<select id="vibe" class="w-full p-3 bg-gray-700 rounded mb-3">
+<option>Educational</option><option>Conversational</option><option>Hot take</option><option>Professional</option><option>Storytelling</option><option>Inspirational</option><option>Pure Cruise</option><option>Savage Banter</option><option>Expert Authority</option><option>Funny</option><option>Nigerian Casual</option>
+</select>
+
+<select id="goal" class="w-full p-3 bg-gray-700 rounded mb-3">
+<option>Reply Bait</option><option>Shareable</option><option>Viral</option><option>Bookmarkable</option><option>Debate</option>
+</select>
+
+<label class="text-sm">Humanizer</label>
+<input id="humanizer" type="range" min="0" max="100" value="70" class="w-full mb-3">
+
+<textarea id="input" class="w-full p-3 bg-gray-700 rounded h-28" placeholder="Type or leave blank"></textarea>
+
+<button onclick="runAI()" class="w-full mt-3 p-3 bg-blue-600 rounded font-bold">Run Beast Mode</button>
+
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="bg-gray-800 p-4 md:p-5 rounded-xl glow">
+
+<div id="trendBox" class="hidden mb-3 p-3 bg-gray-700 rounded"></div>
+
+<div id="multiOutput" class="hidden space-y-3"></div>
+
+<button id="refineBtn" onclick="beastRefine()" class="hidden mt-3 w-full p-3 bg-purple-600 rounded font-bold">🔥 Auto Beast Optimize</button>
+
+</div>
+
+</div>
 </div>
 
 <script>
-document.getElementById('apiKey').value = localStorage.getItem('phx_v13_key') || '';
+const $ = id => document.getElementById(id);
+let lastTweets = [];
 
-// --- LIVE TREND DISCOVERY ENGINE ---
-async function fetchTrends() {
-    const key = document.getElementById('apiKey').value.trim();
-    const niche = document.getElementById('niche').value;
-    const box = document.getElementById('trendArea');
-    const list = document.getElementById('trendList');
-
-    if(!key) return;
-    box.style.display = "block";
-    list.innerHTML = `<span style="font-size:11px; color:var(--muted)">📡 Scouting ${niche} vectors...</span>`;
-
-    const prompt = `Act as an X Trend Analyst. Current Date: April 2026. 
-    List 5 viral, high-engagement topics or "hooks" for the ${niche} niche. 
-    Return ONLY a raw JSON array of strings: ["Trend 1", "Trend 2", ...]`;
-
-    try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ contents: [{parts: [{text: prompt}]}], generationConfig: { responseMimeType: "application/json" } })
-        });
-        const data = await response.json();
-        const trends = JSON.parse(data.candidates[0].content.parts[0].text);
-        list.innerHTML = trends.map(t => `<span class="trend-tag" onclick="document.getElementById('topic').value='${t}'">${t}</span>`).join('');
-    } catch (e) { console.error("Trend Error", e); }
+function toggleCustom(){
+  const niche = $("niche").value;
+  $("customNiche").classList.toggle("hidden", niche !== "Custom");
 }
 
-async function generate() {
-    const key = document.getElementById('apiKey').value.trim();
-    const niche = document.getElementById('niche').value;
-    const vibe = document.getElementById('vibe').value;
-    const goal = document.getElementById('goal').value;
-    const topic = document.getElementById('topic').value || "current 2026 trends";
-    const status = document.getElementById('status');
-    const results = document.getElementById('results');
-    const btn = document.getElementById('btn');
-
-    if(!key) return alert("Please provide an API Key.");
-    localStorage.setItem('phx_v13_key', key);
-    
-    btn.disabled = true;
-    status.innerText = "Injecting 15 Copywriting Skills...";
-    results.innerHTML = "";
-
-    const systemPrompt = `You are a World-Class X Algorithm Engineer. Current Date: April 2026.
-    Apply: 1. Hook Writing 2. Persuasion 3. Engagement Bait 4. Storytelling 5. Curiosity Gaps 6. Emotional Triggers 7. Audience Lingo (Christianity lingo if niche is Christianity: 'Rhema', 'Grace', 'Testimony') 8. Controversy 9. Readability 10. Authority 11. Value 12. CTA 13. Sharp Editing 14. Virality Engineering 15. Dwell Time.
-    
-    Task: Generate 2 Viral Tweets and 2 Power Replies.
-    Niche: ${niche}. Vibe: ${vibe}. Goal: ${goal}. Topic: ${topic}.
-    Return ONLY a JSON array: [{"type":"tweet","content":"...","score":98,"logic":"..."}]`;
-
-    const models = ["gemini-1.5-flash", "gemini-2.5-flash"];
-    
-    for (let model of models) {
-        try {
-            status.innerText = `Connecting via ${model}...`;
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    contents: [{parts: [{text: systemPrompt}]}],
-                    generationConfig: { responseMimeType: "application/json", temperature: 0.9 }
-                })
-            });
-
-            if (!response.ok) continue;
-
-            const data = await response.json();
-            const items = JSON.parse(data.candidates[0].content.parts[0].text);
-            
-            items.forEach(item => {
-                const score = item.score || 90;
-                results.innerHTML += `
-                    <div class="tc">
-                        <div class="algo-header">
-                            <span>ALGO VECTOR STRENGTH</span>
-                            <span style="color:var(--x)">${score}/100</span>
-                        </div>
-                        <div class="algo-bar"><div class="algo-fill" style="width:${score}%"></div></div>
-                        <span class="badge ${item.type === 'reply' ? 'badge-banter' : ''}">${item.type}</span>
-                        <div class="content">${item.content}</div>
-                        <div class="meta-info">
-                            <span>🎯 Signal: ${item.logic}</span>
-                        </div>
-                        <button class="copy-btn" onclick="navigator.clipboard.writeText(\`${item.content}\`)">
-                            <span style="font-size:16px;">📋</span> COPY FOR 𝕏
-                        </button>
-                    </div>`;
-            });
-
-            status.innerText = "✅ ALGORITHM BYPASSED SUCCESSFULLY";
-            btn.disabled = false; return;
-        } catch (e) { console.log(model + " blocked."); }
-    }
-    status.innerText = "❌ ALL MODELS BLOCKED. Check Key or VPN.";
-    btn.disabled = false;
+function scoreAdvanced(t){
+let hook=t.length>80?8:9;
+let emotion=/😂|😭|🔥/.test(t)?8:6;
+let controversy=/hot take|unpopular|nobody/i.test(t)?9:5;
+let engagement=/\?|👇/.test(t)?9:5;
+let vir=(hook+emotion+controversy+engagement)/4;
+return Math.round(((hook+emotion+controversy+engagement+vir)/5)*10);
 }
 
-// Auto-trigger trends if key exists
-if(document.getElementById('apiKey').value) fetchTrends();
+function getTrends(n){
+return {
+Tech:["AI Agents","GPT"],Gaming:["eFootball","Koller"],Sports:["UCL","Transfers"],Business:["Startups","Side Hustle"],Crypto:["BTC","Altcoins"],Motivation:["Hustle","Discipline"]
+}[n]||["Trending"];
+}
+
+async function runAI(){
+
+const key=$('apiKey').value;
+const mode=$('mode').value;
+const niche=$('niche').value;
+const human=$('humanizer').value;
+const text=$('input').value;
+const trends=getTrends(niche);
+
+$('trendBox').classList.remove('hidden');
+$('trendBox').innerText='Trends: '+trends.join(', ');
+
+// BASE SYSTEM (NO RIGID FORMAT)
+let system=`You are a viral X content strategist and algorithm optimizer.
+You maximize engagement, retention, and shareability.
+Niche:${niche}
+Vibe:${$('vibe').value}
+Goal:${$('goal').value}
+Human:${human}%
+Trends:${trends.join(',')}`;
+
+// MODE LOGIC (IMPORTANT FIX)
+if(mode === "generate"){
+system += `\nGenerate exactly 4 tweet options. No explanations.`;
+}
+
+if(mode === "analyze"){
+system += `\nAnalyze tweet performance and rewrite ONE improved version.`;
+}
+
+if(mode === "comment"){
+system += `\nRewrite comment to be more engaging and reply-worthy.`;
+}
+
+if(mode === "thread"){
+system += `\nConvert into a viral thread (4–8 tweets).`;
+}
+
+const res=await fetch("https://api.groq.com/openai/v1/chat/completions",{
+method:"POST",
+headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
+body:JSON.stringify({
+model:"llama-3.3-70b-versatile",
+messages:[
+{role:"system",content:system},
+{role:"user",content:text||"Generate viral content"}
+],temperature:0.95
+})
+});
+
+const data=await res.json();
+const out=data?.choices?.[0]?.message?.content||"";
+
+console.log("RAW:",out);
+
+// ROBUST PARSER
+let tweets=out
+.replace(/\r/g,"\n")
+.split("\n")
+.map(t=>t.replace(/^(\d+[.)-]?\s*)/,"").trim())
+.filter(t=>t.length>10);
+
+if(tweets.length<4){
+tweets=out.split(". ").map(t=>t.trim()).filter(t=>t.length>10);
+}
+
+if(tweets.length<4){
+tweets=Array(4).fill(out||"Retry generation");
+}
+
+tweets=tweets.slice(0,4);
+lastTweets=tweets;
+
+let ranked=tweets.map(t=>({t,score:scoreAdvanced(t)})).sort((a,b)=>b.score-a.score);
+
+$('multiOutput').classList.remove('hidden');
+$('multiOutput').innerHTML=ranked.map((r,i)=>`
+<div class='p-3 bg-gray-700 rounded'>
+<b>Rank ${i+1} | Beast Score ${r.score}</b>
+<p>${r.t}</p>
+</div>`).join('');
+
+$('refineBtn').classList.remove('hidden');
+}
+
+async function beastRefine(){
+const key=$('apiKey').value;
+if(!lastTweets.length) return;
+
+let improved=lastTweets[0];
+let attempts=0;
+let finalTweet=improved;
+let bestScore=0;
+
+while(attempts<5){
+attempts++;
+
+let s=scoreAdvanced(improved);
+if(s>=85){
+finalTweet=improved;
+bestScore=s;
+break;
+}
+
+const res=await fetch("https://api.groq.com/openai/v1/chat/completions",{
+method:"POST",
+headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
+body:JSON.stringify({
+model:"llama-3.3-70b-versatile",
+messages:[
+{role:"system",content:"Improve this tweet for maximum virality, emotional hook, and natural tone."},
+{role:"user",content:improved}
+],temperature:0.95
+})
+});
+
+const data=await res.json();
+improved=data?.choices?.[0]?.message?.content||improved;
+finalTweet=improved;
+}
+
+$('multiOutput').innerHTML+=`
+<div class='p-3 bg-purple-700 rounded mt-3'>
+<b>🔥 Beast Optimized Tweet</b>
+<p>${finalTweet}</p>
+<p class='text-sm text-gray-300'>Score: ${scoreAdvanced(finalTweet)} | Attempts: ${attempts}</p>
+</div>`;
+}
+
 </script>
+
 </body>
 </html>

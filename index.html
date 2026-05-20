@@ -1,1 +1,1020 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Viral Distribution Bot</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --border: #252525;
+    --accent: #e8ff00;
+    --accent2: #ff4d6d;
+    --accent3: #00d9ff;
+    --text: #f0f0f0;
+    --muted: #666;
+    --good: #39ff14;
+    --warn: #ffbe0b;
+    --bad: #ff4d6d;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 32px 16px 64px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 80% 10%, rgba(232,255,0,0.04) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 30% at 10% 90%, rgba(0,217,255,0.04) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .noise {
+    position: fixed;
+    inset: 0;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 780px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  header {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tag::before {
+    content: '';
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+  }
+
+  h1 {
+    font-size: clamp(26px, 5vw, 40px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    margin-top: 10px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    line-height: 1.7;
+  }
+
+  /* API Key */
+  .api-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .api-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 28px;
+    align-items: center;
+  }
+
+  .api-row input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 11px 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .api-row input:focus { border-color: var(--accent); }
+
+  /* Criteria pills */
+  .criteria-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+
+  .criterion {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  .criterion.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(232,255,0,0.06);
+  }
+
+  /* ── TAB NAV ── */
+  .tab-nav {
+    display: flex;
+    gap: 0;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 12px 20px;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    position: relative;
+    transition: color 0.15s;
+  }
+
+  .tab-btn::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transition: transform 0.2s;
+  }
+
+  .tab-btn.active {
+    color: var(--accent);
+  }
+
+  .tab-btn.active::after { transform: scaleX(1); }
+
+  /* ── PANELS ── */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Input area */
+  .input-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .input-section label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  textarea, input[type="text"] {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    resize: none;
+    outline: none;
+  }
+
+  textarea { min-height: 120px; }
+  input[type="text"]::placeholder,
+  textarea::placeholder { color: #333; }
+
+  .char-count {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-align: right;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+
+  .char-count.over { color: var(--bad); }
+
+  /* Options row */
+  .options-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .option-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .option-btn:hover, .option-btn.selected {
+    border-color: var(--accent3);
+    color: var(--accent3);
+    background: rgba(0,217,255,0.05);
+  }
+
+  /* Generate selectors */
+  .gen-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .gen-field label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .gen-field select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 12px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    transition: border-color 0.2s;
+  }
+
+  .gen-field select:focus { border-color: var(--accent); }
+
+  .chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+
+  .chip {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 6px 11px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .chip:hover { border-color: #444; color: var(--text); }
+  .chip.active {
+    border-color: var(--accent2);
+    color: var(--accent2);
+    background: rgba(255,77,109,0.06);
+  }
+
+  .chip-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  /* Run button */
+  .run-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--accent);
+    color: #000;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: 32px;
+  }
+
+  .run-btn:hover { background: #d4e800; transform: translateY(-1px); }
+  .run-btn:active { transform: translateY(0); }
+  .run-btn:disabled {
+    background: var(--border);
+    color: var(--muted);
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .run-btn .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(0,0,0,0.3);
+    border-top-color: #000;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Results */
+  .results { display: none; }
+  .results.visible {
+    display: block;
+    animation: fadeUp 0.4s ease forwards;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Score panel */
+  .score-panel {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 24px;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .score-circle {
+    width: 88px; height: 88px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    border: 3px solid;
+    flex-shrink: 0;
+  }
+
+  .score-circle .score-num { font-size: 28px; font-weight: 800; line-height: 1; }
+  .score-circle .score-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-top: 2px;
+  }
+
+  .score-0-40  { border-color: var(--bad);  color: var(--bad);  }
+  .score-41-70 { border-color: var(--warn); color: var(--warn); }
+  .score-71-100{ border-color: var(--good); color: var(--good); }
+
+  .score-details h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .score-details p {
+    font-size: 13px; color: var(--muted);
+    line-height: 1.5; font-family: 'Space Mono', monospace;
+  }
+
+  /* Criteria breakdown */
+  .criteria-breakdown {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .criterion-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .criterion-row:last-child { border-bottom: none; }
+
+  .c-indicator { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+  .c-pass    { background: var(--good); }
+  .c-partial { background: var(--warn); }
+  .c-fail    { background: var(--bad);  }
+
+  .c-name {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text);
+    flex-shrink: 0; width: 130px;
+  }
+
+  .c-note { font-size: 12px; color: var(--muted); line-height: 1.5; flex: 1; }
+
+  /* Tweet cards (rewrites + generated) */
+  .rewrites { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; }
+
+  .rewrite-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 20px;
+    transition: border-color 0.2s;
+  }
+  .rewrite-card:hover { border-color: #333; }
+
+  .rewrite-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px; letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .rewrite-tag .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  .tag-broad  { color: var(--accent);  }
+  .tag-hook   { color: var(--accent2); }
+  .tag-thread { color: var(--accent3); }
+  .tag-gen    { color: var(--good);    }
+
+  .rewrite-text {
+    font-size: 15px; line-height: 1.65;
+    color: var(--text); white-space: pre-wrap;
+    margin-bottom: 12px;
+  }
+
+  .rewrite-footer {
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  .rewrite-chars { font-family: 'Space Mono', monospace; font-size: 9px; color: var(--muted); }
+
+  .copy-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px; letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    background: transparent; color: var(--muted);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .copy-btn.copied { border-color: var(--good); color: var(--good); }
+
+  /* Score mini badge on generated cards */
+  .score-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid;
+    margin-bottom: 12px;
+  }
+  .badge-good { border-color: var(--good); color: var(--good); }
+  .badge-warn { border-color: var(--warn); color: var(--warn); }
+  .badge-bad  { border-color: var(--bad);  color: var(--bad);  }
+
+  /* Hook box */
+  .hook-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .hook-tips { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+  .hook-tip {
+    display: flex; gap: 10px; align-items: flex-start;
+    font-size: 13px; line-height: 1.5; color: var(--muted);
+  }
+  .hook-tip::before { content: '→'; color: var(--accent2); flex-shrink: 0; font-family: 'Space Mono', monospace; }
+
+  /* Error */
+  .error-box {
+    background: rgba(255,77,109,0.08);
+    border: 1px solid rgba(255,77,109,0.3);
+    padding: 16px 20px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px; color: var(--bad);
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 520px) {
+    .score-panel { grid-template-columns: 1fr; }
+    .c-name { width: 100px; }
+    .gen-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="noise"></div>
+
+<div class="container">
+  <header>
+    <div class="tag">Viral Distribution Bot</div>
+    <h1>Built to <span>Break Out</span></h1>
+    <p class="subtitle">Generate or analyze tweets against real viral distribution criteria.<br>Based on @lynx_growth's breakdown of what X actually pushes.</p>
+  </header>
+
+  <!-- API Key -->
+  <div class="api-label">Groq API Key</div>
+  <div class="api-row">
+    <input type="password" id="apiKey" placeholder="gsk_..." />
+  </div>
+
+  <!-- Criteria Pills -->
+  <div class="criteria-bar">
+    <div class="criterion active">Broad Appeal</div>
+    <div class="criterion active">Global Shareable</div>
+    <div class="criterion active">Beyond Followers</div>
+    <div class="criterion active">Quote/Repost Ready</div>
+    <div class="criterion active">Attention Hook</div>
+    <div class="criterion active">Media Stickiness</div>
+  </div>
+
+  <!-- Tab Nav -->
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('generate')">⚡ Generate</button>
+    <button class="tab-btn" onclick="switchTab('analyze')">🔬 Analyze + Rewrite</button>
+  </div>
+
+  <!-- ══ GENERATE PANEL ══ -->
+  <div class="panel active" id="panel-generate">
+
+    <div class="input-section" style="margin-bottom:16px;">
+      <label>Topic / Idea</label>
+      <input type="text" id="genTopic" placeholder="e.g. Most designers skip this layout trick..." />
+    </div>
+
+    <div class="gen-grid">
+      <div class="gen-field">
+        <label>Your Niche</label>
+        <select id="genNiche">
+          <option value="frontend development & design">Frontend Dev & Design</option>
+          <option value="tech and software">Tech & Software</option>
+          <option value="entrepreneurship and startups">Entrepreneurship</option>
+          <option value="marketing and growth">Marketing & Growth</option>
+          <option value="personal finance">Personal Finance</option>
+          <option value="productivity and self-improvement">Productivity</option>
+          <option value="AI and machine learning">AI & Machine Learning</option>
+          <option value="content creation and social media">Content Creation</option>
+          <option value="health and fitness">Health & Fitness</option>
+          <option value="general / not niche-specific">General (No Niche)</option>
+        </select>
+      </div>
+
+      <div class="gen-field">
+        <label>Format</label>
+        <select id="genFormat">
+          <option value="single tweet under 280 chars">Single Tweet</option>
+          <option value="thread opener (tweet 1 of a thread, ends with a hook)">Thread Opener</option>
+          <option value="listicle tweet with numbered points">Listicle</option>
+          <option value="controversial hot take">Hot Take</option>
+          <option value="story-driven tweet">Story Tweet</option>
+          <option value="question / engagement bait">Question / Poll Hook</option>
+        </select>
+      </div>
+    </div>
+
+    <span class="chip-label">Emotion / Tone</span>
+    <div class="chip-group" id="toneChips">
+      <div class="chip active" data-tone="curiosity">Curiosity</div>
+      <div class="chip" data-tone="controversy">Controversy</div>
+      <div class="chip" data-tone="inspiration">Inspiration</div>
+      <div class="chip" data-tone="relatability">Relatability</div>
+      <div class="chip" data-tone="urgency">Urgency</div>
+      <div class="chip" data-tone="humor">Humor</div>
+      <div class="chip" data-tone="authority">Authority</div>
+      <div class="chip" data-tone="empathy">Empathy</div>
+    </div>
+
+    <button class="run-btn" id="genBtn" onclick="generate()">
+      ⚡ Generate Distribution-Ready Tweet
+    </button>
+
+    <div class="results" id="genResults"></div>
+  </div>
+
+  <!-- ══ ANALYZE PANEL ══ -->
+  <div class="panel" id="panel-analyze">
+
+    <div class="input-section">
+      <label>Your Tweet Draft</label>
+      <textarea id="tweetInput" placeholder="Paste your tweet draft here..." maxlength="2000" oninput="updateChar()"></textarea>
+      <div class="char-count" id="charCount">0 / 280</div>
+    </div>
+
+    <div class="options-row">
+      <button class="option-btn selected" data-mode="analyze">Analyze + Rewrite</button>
+      <button class="option-btn" data-mode="rewrite">Rewrite Only</button>
+      <button class="option-btn" data-mode="thread">Thread Version</button>
+    </div>
+
+    <button class="run-btn" id="runBtn" onclick="analyze()">
+      🔬 Analyze for Viral Distribution
+    </button>
+
+    <div class="results" id="analyzeResults"></div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+// ── TAB SWITCHING ──
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', ['generate','analyze'][i] === name);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+// ── ANALYZE MODE TOGGLE ──
+let selectedMode = 'analyze';
+document.querySelectorAll('.option-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedMode = btn.dataset.mode;
+  });
+});
+
+// ── TONE CHIPS (single select) ──
+document.querySelectorAll('#toneChips .chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('#toneChips .chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+  });
+});
+
+function getSelectedTone() {
+  const active = document.querySelector('#toneChips .chip.active');
+  return active ? active.dataset.tone : 'curiosity';
+}
+
+// ── CHAR COUNT ──
+function updateChar() {
+  const val = document.getElementById('tweetInput').value;
+  const el = document.getElementById('charCount');
+  el.textContent = val.length + ' / 280';
+  el.className = 'char-count' + (val.length > 280 ? ' over' : '');
+}
+
+// ── GROQ CALL ──
+async function callGroq(key, systemPrompt, userMsg, maxTokens) {
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      max_tokens: maxTokens || 1800,
+      temperature: 0.75,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userMsg }
+      ]
+    })
+  });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'HTTP ' + res.status); }
+  const data = await res.json();
+  const raw = data.choices[0].message.content;
+  return raw.replace(/```json|```/g, '').trim();
+}
+
+// ════════════════════════════════
+// GENERATE
+// ════════════════════════════════
+async function generate() {
+  const key = document.getElementById('apiKey').value.trim();
+  const topic = document.getElementById('genTopic').value.trim();
+  const niche = document.getElementById('genNiche').value;
+  const format = document.getElementById('genFormat').value;
+  const tone = getSelectedTone();
+  const btn = document.getElementById('genBtn');
+  const results = document.getElementById('genResults');
+
+  if (!key) return showError('genResults', 'Enter your Groq API key first.');
+  if (!topic) return showError('genResults', 'Enter a topic or idea to generate from.');
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Generating...';
+  results.className = 'results';
+  results.innerHTML = '';
+
+  const systemPrompt = `You are an expert Twitter/X growth strategist who writes tweets engineered for maximum viral distribution.
+
+The single most important rule: BROAD APPEAL. Every tweet you generate must be immediately understandable and shareable by someone who has never heard of the creator's niche. A tweet about design must resonate with a lawyer. A tweet about coding must hit a nurse. The niche is only used to understand the creator's voice and topic source — it must NEVER limit the audience or require insider knowledge to appreciate.
+
+Tweets with real distribution potential follow ALL 6 criteria — treat each as a hard requirement, not a suggestion:
+1. Broad Appeal – NO niche jargon, no assumed context. A total stranger must instantly get it and feel it.
+2. Global Shareable – No hyper-local references. Anyone on Earth should relate or find it worth sharing.
+3. Beyond Follower Targeting – The tweet must work completely without knowing who posted it. Zero context dependency.
+4. Quote/Repost Openness – Structured so a 100K account can quote it, add their take, and it makes them look good too.
+5. Attention Hook – Must stop the scroll. Uses curiosity, tension, a counterintuitive claim, or emotional pull. "Manipulative enough" to attract attention.
+6. Media Stickiness – Naturally invites an image or visual that people will keep clicking, extending the post's lifespan.
+
+Generate 3 different tweet variations for the topic. Each takes a genuinely different angle. Each must pass ALL 6 criteria — if a tweet would only appeal to people in the niche, rewrite it until it doesn't.
+
+You MUST respond in pure JSON only. No markdown, no backticks, no preamble. Structure:
+
+{
+  "tweets": [
+    {
+      "angle": "<short angle label e.g. 'Contrarian Take' or 'Relatable Pain Point'>",
+      "text": "<the tweet text>",
+      "overallScore": <0-100>,
+      "criteria": [
+        {"name": "Broad Appeal", "status": "pass|partial|fail"},
+        {"name": "Global Shareable", "status": "pass|partial|fail"},
+        {"name": "Beyond Followers", "status": "pass|partial|fail"},
+        {"name": "Quote/Repost Ready", "status": "pass|partial|fail"},
+        {"name": "Attention Hook", "status": "pass|partial|fail"},
+        {"name": "Media Stickiness", "status": "pass|partial|fail"}
+      ],
+      "mediaIdea": "<one concrete suggestion for what image/visual would boost stickiness>"
+    }
+  ],
+  "topTip": "<one sharp distribution tip specifically about how to get this topic in front of non-followers>"
+}`;
+
+  const userMsg = `Topic: "${topic}"
+Creator niche (voice/context only — do NOT limit audience to this niche): ${niche}
+Format: ${format}
+Primary Emotion/Tone: ${tone}
+
+Generate 3 tweet variations. CRITICAL: Each tweet must be immediately understood and felt by someone completely outside the creator's niche. No jargon. No assumed insider knowledge. The topic is the seed — translate it into a universally human truth. Make them feel human, not AI-generated. Be bold.`;
+
+  try {
+    const cleaned = await callGroq(key, systemPrompt, userMsg, 1600);
+    const parsed = JSON.parse(cleaned);
+    renderGenResults(parsed);
+  } catch(e) {
+    showError('genResults', e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '⚡ Generate Distribution-Ready Tweet';
+  }
+}
+
+function renderGenResults(d) {
+  const results = document.getElementById('genResults');
+
+  const tweetsHTML = d.tweets.map((t, i) => {
+    const scoreClass = t.overallScore >= 71 ? 'badge-good' : t.overallScore >= 41 ? 'badge-warn' : 'badge-bad';
+    const criteriaHTML = t.criteria.map(c =>
+      `<span style="font-family:'Space Mono',monospace;font-size:9px;color:${c.status==='pass'?'var(--good)':c.status==='partial'?'var(--warn)':'var(--bad)'};">${c.status==='pass'?'✓':c.status==='partial'?'~':'✗'} ${c.name}</span>`
+    ).join('<span style="color:var(--border);margin:0 4px;">|</span>');
+
+    const safeText = escapeHTML(t.text);
+    const rawText = t.text.replace(/`/g, '\\`');
+
+    return `<div class="rewrite-card">
+      <div class="rewrite-tag tag-gen"><div class="dot"></div>${t.angle}</div>
+      <div class="score-badge ${scoreClass}">${t.overallScore}/100 viral score</div>
+      <div class="rewrite-text">${safeText}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;">${criteriaHTML}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:14px;font-family:'Space Mono',monospace;border-left:2px solid var(--accent3);padding-left:10px;">📸 ${escapeHTML(t.mediaIdea)}</div>
+      <div class="rewrite-footer">
+        <span class="rewrite-chars">${t.text.length} chars</span>
+        <button class="copy-btn" onclick="copyText(this, \`${rawText}\`)">Copy</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  results.innerHTML = `
+    <div class="section-title" style="margin-bottom:12px;">Generated Tweets</div>
+    <div class="rewrites">${tweetsHTML}</div>
+    <div class="hook-box">
+      <div class="section-title">Distribution Tip for This Topic</div>
+      <div class="hook-tips"><div class="hook-tip">${escapeHTML(d.topTip)}</div></div>
+    </div>
+  `;
+
+  results.className = 'results visible';
+  results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ════════════════════════════════
+// ANALYZE
+// ════════════════════════════════
+async function analyze() {
+  const key = document.getElementById('apiKey').value.trim();
+  const tweet = document.getElementById('tweetInput').value.trim();
+  const btn = document.getElementById('runBtn');
+  const results = document.getElementById('analyzeResults');
+
+  if (!key) return showError('analyzeResults', 'Enter your Groq API key first.');
+  if (!tweet) return showError('analyzeResults', 'Paste a tweet draft to analyze.');
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Analyzing...';
+  results.className = 'results';
+  results.innerHTML = '';
+
+  const systemPrompt = `You are a Twitter/X viral distribution analyst. You analyze tweets against 6 real criteria for viral distribution:
+1. Broad Appeal – goes beyond a niche audience
+2. Global Shareable – relevant internationally, not hyper-local
+3. Beyond Follower Targeting – strangers can understand and share without context
+4. Quote/Repost Openness – structured so others can add value and amplify
+5. Attention Hook – hooks attention, creates curiosity or tension
+6. Media Stickiness – whether adding images/media would naturally extend engagement
+
+You MUST respond in pure JSON only. No markdown. No preamble. No backticks. Structure:
+
+{
+  "overallScore": <0-100>,
+  "verdict": "<one punchy sentence verdict>",
+  "summary": "<2-3 sentence honest assessment>",
+  "criteria": [
+    {"name": "Broad Appeal", "status": "pass|partial|fail", "note": "<why>"},
+    {"name": "Global Shareable", "status": "pass|partial|fail", "note": "<why>"},
+    {"name": "Beyond Followers", "status": "pass|partial|fail", "note": "<why>"},
+    {"name": "Quote/Repost Ready", "status": "pass|partial|fail", "note": "<why>"},
+    {"name": "Attention Hook", "status": "pass|partial|fail", "note": "<why>"},
+    {"name": "Media Stickiness", "status": "pass|partial|fail", "note": "<why>"}
+  ],
+  "rewrites": [
+    {"type": "broad", "label": "Broad Distribution Version", "text": "<rewritten tweet>", "why": "<one line on what changed>"},
+    {"type": "hook",  "label": "Maximum Hook Version",       "text": "<rewritten tweet>", "why": "<one line on what changed>"},
+    {"type": "thread","label": "Thread Starter Version",     "text": "<thread opener tweet 1>", "why": "<one line on what changed>"}
+  ],
+  "hookTips": [
+    "<specific tip 1 for attracting big account attention>",
+    "<specific tip 2>",
+    "<specific tip 3>"
+  ]
+}`;
+
+  const userMsg = `Analyze this tweet and return JSON:\n\n"${tweet}"\n\nMode: ${selectedMode}`;
+
+  try {
+    const cleaned = await callGroq(key, systemPrompt, userMsg, 1800);
+    const parsed = JSON.parse(cleaned);
+    renderAnalyzeResults(parsed);
+  } catch(e) {
+    showError('analyzeResults', e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '🔬 Analyze for Viral Distribution';
+  }
+}
+
+function renderAnalyzeResults(d) {
+  const results = document.getElementById('analyzeResults');
+  const scoreClass = getScoreClass(d.overallScore);
+
+  const criteriaHTML = d.criteria.map(c => `
+    <div class="criterion-row">
+      <div class="c-indicator ${getStatusClass(c.status)}"></div>
+      <div class="c-name">${c.name}</div>
+      <div class="c-note">${c.note}</div>
+    </div>`).join('');
+
+  const rewriteHTML = d.rewrites.map(r => {
+    const raw = r.text.replace(/`/g, '\\`');
+    return `<div class="rewrite-card">
+      <div class="rewrite-tag ${getTagClass(r.type)}"><div class="dot"></div>${r.label}</div>
+      <div class="rewrite-text">${escapeHTML(r.text)}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;font-family:'Space Mono',monospace;">↳ ${r.why}</div>
+      <div class="rewrite-footer">
+        <span class="rewrite-chars">${r.text.length} chars</span>
+        <button class="copy-btn" onclick="copyText(this, \`${raw}\`)">Copy</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  const tipsHTML = (d.hookTips || []).map(t => `<div class="hook-tip">${t}</div>`).join('');
+
+  results.innerHTML = `
+    <div class="score-panel">
+      <div class="score-circle ${scoreClass}">
+        <div class="score-num">${d.overallScore}</div>
+        <div class="score-label">/ 100</div>
+      </div>
+      <div class="score-details">
+        <h3>${d.verdict}</h3>
+        <p>${d.summary}</p>
+      </div>
+    </div>
+    <div class="criteria-breakdown">
+      <div class="section-title">Viral Criteria Breakdown</div>
+      ${criteriaHTML}
+    </div>
+    <div class="section-title" style="margin-bottom:12px;">Rewritten Versions</div>
+    <div class="rewrites">${rewriteHTML}</div>
+    <div class="hook-box">
+      <div class="section-title">How to Attract Big Account Catalysts</div>
+      <div class="hook-tips">${tipsHTML}</div>
+    </div>
+  `;
+
+  results.className = 'results visible';
+  results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── HELPERS ──
+function getScoreClass(s) { return s <= 40 ? 'score-0-40' : s <= 70 ? 'score-41-70' : 'score-71-100'; }
+function getStatusClass(s) { return s === 'pass' ? 'c-pass' : s === 'partial' ? 'c-partial' : 'c-fail'; }
+function getTagClass(t) { return t === 'broad' ? 'tag-broad' : t === 'hook' ? 'tag-hook' : 'tag-thread'; }
+
+function escapeHTML(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function copyText(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied ✓';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function showError(containerId, msg) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '<div class="error-box">Error: ' + msg + '</div>';
+  el.className = 'results visible';
+}
+</script>
+</body>
+</html>
